@@ -1,79 +1,61 @@
 import emojiRegex from 'emoji-regex';
 import { log } from 'next-axiom';
 
-import type { GitHubRepos, Project, ProjectPost } from '~/types';
+import type { GitHubRepos, Project } from '~/types';
 
 /**
  * Fetch Projects
  *
  * Make a GET request to the GitHub API to gather all repositories
- * under my `nurodev` username & then filter them down to only
- * include those that contain the `portfolio` topic
- *
- * @TODO Switch to v3 API using GraphQL to save over-fetching
+ * under the `Givaa` username.
  */
 export async function fetchProjects(): Promise<Array<Project> | null> {
-	const response = await fetch('https://api.github.com/users/nurodev/repos', {
-		headers: {
-			...(process.env.GITHUB_PAT && {
-				authorization: `token ${process.env.GITHUB_PAT}`,
-			}),
-		},
-	});
-	if (response.status !== 200) {
-		const json = (await response.json()) as {
-			documentation_url: string;
-			message: string;
-		};
-
-		console.error({ error: json });
-		log.error('Failed to fetch projects', {
-			error: json,
+	try {
+		// Fetch the repositories from the GitHub API
+		const response = await fetch('https://api.github.com/users/Givaa/repos', {
+			headers: {
+				...(process.env.GITHUB_PAT && {
+					authorization: `token ${process.env.GITHUB_PAT}`,
+				}),
+			},
 		});
 
-		return null;
-	}
+		// Handle non-200 responses
+		if (!response.ok) {
+			const errorData = await response.json();
+			console.error({ error: errorData });
+			log.error('Failed to fetch projects', { error: errorData });
+			return null;
+		}
 
-	const json = (await response.json()) as GitHubRepos;
+		const repositories = (await response.json()) as GitHubRepos;
 
-	const { default: rawProjectPosts } = await import('~/data/projects.json');
-	const projectPosts = rawProjectPosts as Array<ProjectPost>;
+		// Map the repositories to the Project type
+		const projects: Array<Project> = repositories.map((repo) => {
+			// Strip the emoji from the repo description
+			const description = repo.description
+				? repo.description.replace(emojiRegex(), '').trim()
+				: '';
 
-	const projects: Array<Project> = json
-		.map((repo) => {
-			if (!repo.topics.includes('portfolio')) return null;
-
-			if (repo.archived) return null;
-
-			// Strip the emoji suffix from the repo description
-			const trimmedDescription = repo.description.split(' ');
-			trimmedDescription.shift();
-			const description = trimmedDescription.join(' ');
-
-			// Check if there is a matching blog post to attach
-			const repoPost =
-				projectPosts.length > 0 &&
-				projectPosts.find(
-					(post) => post.repository.toLowerCase() === repo.full_name.toLowerCase(),
-				);
+			// Extract the emoji icon from the description
+			const iconMatch = repo.description?.match(emojiRegex());
+			const icon = iconMatch ? iconMatch[0] : undefined;
 
 			return {
-				description,
-				icon: ((): string => {
-					if (!repo.description) return undefined;
-
-					const char = repo.description.split(' ')[0];
-
-					return emojiRegex().test(char) ? char : undefined;
-				})(),
-				homepage: repo.homepage ?? undefined,
 				name: repo.name,
-				post: repoPost ? `/blog/${repoPost.post}` : undefined,
-				template: false,
+				description,
+				icon,
+				homepage: repo.homepage || undefined,
 				url: repo.html_url.toLowerCase(),
+				template: false,
 			} as Project;
-		})
-		.filter((project) => project !== null);
+		});
 
-	return projects;
+		return projects;
+	} catch (error) {
+		// General error handling
+		console.error('Error fetching projects:', error);
+		log.error('Unexpected error while fetching projects', { error });
+		return null;
+	}
 }

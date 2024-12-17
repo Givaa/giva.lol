@@ -33,26 +33,13 @@ const staticMenuItems: Array<Array<NavigationItem>> = [
 			text: 'Timeline',
 			href: '/timeline',
 		},
-		{
-			type: NavigationItemType.LINK,
-			icon: 'feather:link',
-			text: 'Referrals',
-			href: '/referrals',
-		},
 	],
 	[
 		{
 			type: NavigationItemType.LINK,
-			icon: 'feather:twitter',
-			text: 'Twitter',
-			href: 'https://twitter.com/nurodev',
-			external: true,
-		},
-		{
-			type: NavigationItemType.LINK,
 			icon: 'feather:github',
 			text: 'GitHub',
-			href: 'https://github.com/nurodev',
+			href: 'https://github.com/Givaa',
 			external: true,
 		},
 	],
@@ -71,15 +58,15 @@ export function useNavigation(): {
 		...staticMenuItems,
 		...(!loading && status.discord_status !== 'offline'
 			? [
-					[
-						{
-							type: NavigationItemType.LINK,
-							icon: <Status.Indicator color={color} pulse />,
-							text: 'Status',
-							href: '/status',
-						} as NavigationItem,
-					],
-			  ]
+				[
+					{
+						type: NavigationItemType.LINK,
+						icon: <Status.Indicator color={color} pulse />,
+						text: 'Status',
+						href: '/status',
+					} as NavigationItem,
+				],
+			]
 			: []),
 	];
 

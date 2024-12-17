@@ -6,7 +6,6 @@ export * from './list';
 export * from './navigation';
 export * from './navigation';
 export * from './projects';
-export * from './referrals';
 export * from './state';
 export * from './theme';
 export * from './timeline';

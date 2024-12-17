@@ -23,7 +23,7 @@ export function Error({ routeBlog = true }: ErrorProps): JSX.Element {
 							No Posts Found
 						</h1>
 						<p className="mt-4 text-sm font-medium text-gray-300 dark:text-gray-400">
-							Sorry, we couldn’t find any blog posts ¯\_(ツ)_/¯
+							Work in progress! :-)
 						</p>
 						<div className="mt-6 flex justify-center items-center space-x-4">
 							<Button.Standard
